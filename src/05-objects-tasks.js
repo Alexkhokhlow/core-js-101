@@ -109,32 +109,98 @@ function fromJSON(proto, json) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  result: '',
+  index: [],
+  element(value) {
+    if (this.index.includes(1)) {
+      this.index = [];
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    const result = { ...this };
+    result.result = value;
+    result.index = [];
+    result.index.push(1);
+    return result;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.index.includes(2)) {
+      this.index = [];
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    this.index.forEach((item) => {
+      if (item > 2) {
+        this.index = [];
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    });
+    this.index.push(2);
+    this.result = this.result.concat(`#${value}`);
+    return this;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    this.index.forEach((item) => {
+      if (item > 3) {
+        this.index = [];
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    });
+    this.index.push(3);
+    this.result = this.result.concat(`.${value}`);
+    return this;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    this.index.forEach((item) => {
+      if (item > 4) {
+        this.index = [];
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    });
+    this.index.push(4);
+    this.result = this.result.concat(`[${value}]`);
+    return this;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    this.index.forEach((item) => {
+      if (item > 5) {
+        this.index = [];
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    });
+    this.index.push(5);
+    this.result = this.result.concat(`:${value}`);
+    return this;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    this.index.forEach((item) => {
+      if (item > 6) {
+        this.index = [];
+        throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+      }
+    });
+    if (this.index.includes(6)) {
+      this.index = [];
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    this.index.push(6);
+    this.result = this.result.concat(`::${value}`);
+    return this;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(sel1, com, sel2) {
+    this.result = sel1.stringify().concat(` ${com} `).concat(sel2.stringify());
+    return this;
+  },
+
+  stringify() {
+    const res = this.result;
+    this.result = '';
+    this.index = [];
+    return res;
   },
 };
 
